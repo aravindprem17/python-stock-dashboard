@@ -2,17 +2,26 @@ import requests
 import pandas as pd
 from io import StringIO
 from fastapi import HTTPException
-
-# NOTE: You MUST get a free API key from https://www.alphavantage.co/support/#api-key
+from cachetools import TTLCache, cached
+# NOTE: Get a free API key from https://www.alphavantage.co/support/#api-key
 # Store it in a file named .env in the root directory as:
 # ALPHA_VANTAGE_API_KEY="YOUR_API_KEY_HERE"
 
+# --- Create a cache ---
+# Max 100 tickers, 900 seconds (15 mins) time-to-live
+cache = TTLCache(maxsize=100, ttl=900)  # <-- 2. CREATE THE CACHE
+
 BASE_URL = "https://www.alphavantage.co/query"
 
+@cached(cache)
 def get_stock_data_service(ticker: str, api_key: str):
     """
     Fetches and processes stock data from Alpha Vantage.
+    Results are cached for 15 minutes.
     """
+    # Add a print statement to prove the cache is working
+    print(f"CACHE MISS: Fetching new data for {ticker} from Alpha Vantage...")
+    
     params = {
         "function": "TIME_SERIES_DAILY_ADJUSTED",
         "symbol": ticker,
