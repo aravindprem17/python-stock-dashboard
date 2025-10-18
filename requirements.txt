@@ -1,0 +1,12 @@
+# Common
+pandas
+requests
+python-dotenv
+
+# FastAPI Backend
+fastapi
+uvicorn[standard]
+
+# Streamlit Frontend
+streamlit
+plotly
