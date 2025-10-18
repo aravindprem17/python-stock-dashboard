@@ -3,6 +3,9 @@ import pandas as pd
 from io import StringIO
 from fastapi import HTTPException
 from cachetools import TTLCache, cached
+import os  
+from .mock_data import MOCK_AAPL_DATA, MOCK_AAPL_METADATA  # <-- Import mock data
+
 # NOTE: Get a free API key from https://www.alphavantage.co/support/#api-key
 # Store it in a file named .env in the root directory as:
 # ALPHA_VANTAGE_API_KEY="YOUR_API_KEY_HERE"
@@ -13,13 +16,32 @@ cache = TTLCache(maxsize=100, ttl=900)  # <-- 2. CREATE THE CACHE
 
 BASE_URL = "https://www.alphavantage.co/query"
 
+
+# --- NEW MOCK FUNCTION ---
+def get_mock_data_service(ticker: str):
+    """
+    Returns pre-saved mock data to avoid API calls.
+    """
+    print(f"DEV MODE: Returning mock data for {ticker}...")
+    # You can expand this to return different data for 'MSFT', etc.
+    if ticker.upper() == "AAPL":
+        return MOCK_AAPL_DATA, MOCK_AAPL_METADATA
+    else:
+        # Return data for a "generic" ticker
+        return MOCK_AAPL_DATA, {"symbol": f"{ticker} (Mock)", "last_refreshed": "2025-10-17"}
+
 @cached(cache)
 def get_stock_data_service(ticker: str, api_key: str):
     """
     Fetches and processes stock data from Alpha Vantage.
     Results are cached for 15 minutes.
     """
-    # Add a print statement to prove the cache is working
+
+    # --- CHECK FOR DEV_MODE ---
+    if os.getenv("DEV_MODE") == "True":
+        return get_mock_data_service(ticker)
+    
+    # --- Otherwise, call the real API ---
     print(f"CACHE MISS: Fetching new data for {ticker} from Alpha Vantage...")
     
     params = {
