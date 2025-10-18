@@ -1,7 +1,7 @@
 import os
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from services import get_stock_data_service
+from .services import get_stock_data_service
 from dotenv import load_dotenv
 
 # Load environment variables from .env file (for API key)
